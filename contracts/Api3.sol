@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.18;
+pragma solidity 0.8.10;
 
 import "@api3/contracts/v0.8/interfaces/IProxy.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";

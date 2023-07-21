@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity 0.8.18;
+pragma solidity 0.8.10;
 
 import "@aave/core-v3/contracts/interfaces/IPriceOracleGetter.sol";
 import {IDataFeedApi3} from "./IApi3.sol";
