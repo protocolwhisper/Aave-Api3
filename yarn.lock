@@ -4544,6 +4544,11 @@ ts-command-line-args@^2.2.0:
     command-line-usage "^6.1.0"
     string-format "^2.0.0"
 
+ts-dotenv@^0.9.1:
+  version "0.9.1"
+  resolved "https://registry.yarnpkg.com/ts-dotenv/-/ts-dotenv-0.9.1.tgz#71c619c412860b99a4a3fff86cf57abf3579c479"
+  integrity sha512-oTTXmjSMkCIK8d+uKbQnHh7JS9zEYGn3pq7nE0qHVERq+6Mx9wZKcXVAT+7X0qhOWpRz10dqrJCFFcKwunYz5w==
+
 ts-essentials@^7.0.1:
   version "7.0.3"
   resolved "https://registry.yarnpkg.com/ts-essentials/-/ts-essentials-7.0.3.tgz#686fd155a02133eedcc5362dc8b5056cde3e5a38"
