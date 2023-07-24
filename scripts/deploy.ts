@@ -1,24 +1,16 @@
-import { ethers } from "hardhat";
-
+import * as api3Contracts from '@api3/contracts';
 async function main() {
-  const currentTimestampInSeconds = Math.round(Date.now() / 1000);
-  const unlockTime = currentTimestampInSeconds + 60;
-
-  const lockedAmount = ethers.utils.parseEther("0.001");
-
-  const Lock = await ethers.getContractFactory("Lock");
-  const lock = await Lock.deploy(unlockTime, { value: lockedAmount });
-
-  await lock.deployed();
-
-  console.log(
-    `Lock with ${ethers.utils.formatEther(lockedAmount)}ETH and unlock timestamp ${unlockTime} deployed to ${lock.address}`
+  // Calling the computeDataFeedProxyAddress function from the imported api3Contracts
+  // Passes in a specific chain id, data feed, and metadata
+  // This will compute the data feed proxy address for a specific API3 market, given the chain id and data feed
+  const dataFeedProxyAddress = await api3Contracts.computeDataFeedProxyAddress(
+    11155111, 
+    '0x4385954e058fbe6b6a744f32a4f89d67aad099f8fb8b23e7ea8dd366ae88151d', 
+    '0x'
   );
+
+  console.log(dataFeedProxyAddress);
 }
 
-// We recommend this pattern to be able to use async/await everywhere
-// and properly handle errors.
-main().catch((error) => {
-  console.error(error);
-  process.exitCode = 1;
-});
+// Call your function
+main().catch(console.error);

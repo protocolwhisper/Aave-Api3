@@ -1,12 +1,10 @@
 import { SignerWithAddress } from "@nomiclabs/hardhat-ethers/signers";
-import { expect, should }   from "chai";
+import { expect}   from "chai";
 import { ContractFactory } from "ethers";
 import { ethers }   from "hardhat";
-import { PoolAddressesProvider, AaveOracle , WETHapioracle__factory, aave } from "../typechain-types";
-import { timeStamp } from "console";
+import { PoolAddressesProvider, AaveOracle} from "../typechain-types";
 import hre from "hardhat";
-import Address from "@typechain/ethers-v5"
-import { Contract } from "hardhat/internal/hardhat-network/stack-traces/model";
+
 
 
 describe("Aave-Api3 - Unit tests", function() {
@@ -15,10 +13,11 @@ describe("Aave-Api3 - Unit tests", function() {
     let accounts: SignerWithAddress[];
     let impersonate_signer: SignerWithAddress;
     let aave_oracle : AaveOracle;
+    let WETH_ADDRESS : string;
 
   
     before(async function() {
-        // ACL Manager Contract
+        WETH_ADDRESS = "0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92";
         accounts = await ethers.getSigners()
         let pool_provider_owner = "0xfA0e305E0f46AB04f00ae6b5f4560d61a2183E00";
         await hre.network.provider.request({
@@ -27,10 +26,11 @@ describe("Aave-Api3 - Unit tests", function() {
         });
       
         impersonate_signer = await ethers.getSigner(pool_provider_owner);
+        // Pool Addresses Provider can be found in https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
         pool_contract = await ethers.getContractAt("PoolAddressesProvider", "0x0496275d34753A48320CA58103d5220d394FF77F", impersonate_signer);
         // Aave Oracle contract
         aave_oracle  = await ethers.getContractAt("AaveOracle" , "0x132C06E86CcCf93Afef7B33f0FF3e2E97EECf8f6", impersonate_signer);
-        //console.log(impersonate_signer.address)
+       
 
         
     });
@@ -51,12 +51,11 @@ describe("Aave-Api3 - Unit tests", function() {
 
     describe("Change chainlink orale for API3 Oracle", function(){
         it("Update the WETH asset to my custom api3 Oracle" , async function() {
-            let WETH_ADDRESS = "0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92"; //Sepolia
             let new_oracle = await ethers.getContractFactory("WETHapioracle")
 
-            // Here we wrap our contract in a way to make it compatible with aave
-            let sc_oracle = new_oracle.deploy("0x81787D0680b3d4dB1dcb2Cb24D3aE6CCb9c9eBCa") // Our API3sc
-            //console.log((await sc_oracle).address)
+            // Here we wrap our contract in a way to make it compatible with aave int224 -> int256
+            let sc_oracle = new_oracle.deploy("0x81787D0680b3d4dB1dcb2Cb24D3aE6CCb9c9eBCa") // Our API3sc the address state here will be a type from the sc API3.sol
+           
             
             ;(await sc_oracle).deployed();
     
@@ -67,7 +66,6 @@ describe("Aave-Api3 - Unit tests", function() {
         
         })
         it("Query WETH price with new oracle" , async function () {
-            let WETH_ADDRESS = "0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92";
             let query = await aave_oracle.getAssetPrice(WETH_ADDRESS)
             let low_limit = ethers.BigNumber.from(1200);
             let uper_limit = ethers.BigNumber.from(1200);
@@ -81,8 +79,6 @@ describe("Aave-Api3 - Unit tests", function() {
     describe("Deploy a Flash Loan", function (){
         it("Should take a flash loan and be able to return it", async function (){
             const flashloanexample = await ethers.getContractFactory("FlashLoanExample");
-            let WETH_ADDRESS = "0xD0dF82dE051244f04BfF3A8bB1f62E1cD39eED92";
-
             let WETH_WHALE = "0x5c4220e10d0D835e9eDf04061379dED26E845bA8"
             await hre.network.provider.request({
                 method : "hardhat_impersonateAccount",
@@ -90,7 +86,7 @@ describe("Aave-Api3 - Unit tests", function() {
             });
           
             let weth_whale = await ethers.getSigner(WETH_WHALE);
-            // This is the address of the PoolAddressProvider that can be fond in https://docs.aave.com/developers/deployed-contracts/v3-mainnet/polygon
+            // This is the address of the PoolAddressProvider that can be found in https://docs.aave.com/developers/deployed-contracts/v3-testnet-addresses
             const _flashloanexample = await flashloanexample.connect(weth_whale).deploy(pool_contract.address);
             await _flashloanexample.deployed();
             // Fund our contract
@@ -98,10 +94,9 @@ describe("Aave-Api3 - Unit tests", function() {
             await token
             .connect(weth_whale)
             .transfer(_flashloanexample.address, 1000); // Sending 1000 to the contract
-            const tx = await _flashloanexample.createFlashLoan(WETH_ADDRESS, 10000); // Asking for x10000 more
+            const tx = await _flashloanexample.createFlashLoan(WETH_ADDRESS, 10000); // Asking for 10x more
             await tx.wait();
             const remainingBalance = await token.balanceOf(_flashloanexample.address); // Balance of our contract
-            //console.log(remainingBalance)
             expect(remainingBalance.lt(1000)).to.be.true; // This happens cause we need to give it back with a premium
         })
     })
